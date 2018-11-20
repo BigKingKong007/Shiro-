@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+       http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+                        <!--shiro跟spring整合-->
+    <!--1、配置SecerityManager-->
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+           <!--缓存管理-->
+            <property name="cacheManager" ref="cacheManager"></property>
+            <property name="realm" ref="userRealm"></property>
+    </bean>
+
+    <!--2、配置缓存-->
+    <bean id="cacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
+        <property name="cacheManagerConfigFile" value="classpath:ehcache.xml"></property>
+    </bean>
+
+    <!--3、配置自定义realm
+    AuthorizingRealm
+    -->
+    <bean id="userRealm" class="com.itqf.Realm.UserRealm"></bean>
+
+    <!--4、配置-->
+    <bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor"></bean>
+
+    <!--5、配置运行shiro注解在spring的容器中使用  必须在lifecycleBeanPostProcessor后配置-->
+    <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator" depends-on="lifecycleBeanPostProcessor"></bean>
+    <bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+        <property name="securityManager" ref="securityManager"></property>
+    </bean>
+    
+    <!--6、配置shirofilter bean的id必须和web.xml种的filtername一致-->
+    <bean id="shirofilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <property name="securityManager" ref="securityManager"></property>
+        <property name="loginUrl" value="/tologin"></property>
+        <property name="successUrl" value="/main"></property>
+        <property name="unauthorizedUrl" value="/unauthorizedUrl"></property>
+        <!--详细配置-->
+        <property name="filterChainDefinitions">
+            <value>
+                /css/**=anon
+                /js/**=anon
+                /images/**=anon
+                /login/**=anon
+                /**=authc
+                <!--
+                /**=authc认证后访问
+                -->
+            </value>
+        </property>
+    </bean>
+</beans>
